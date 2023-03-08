@@ -1,0 +1,70 @@
+
+alter PROCEDURE SPR_RPT_JOURNALS (
+	@P_DT_START VARCHAR(25) = NULL,
+	@P_DT_FINISH  VARCHAR(25) = NULL,
+	@P_ID_ISSUE VARCHAR(MAX) = NULL, 
+	@P_DE_NOTES VARCHAR(MAX) = NULL
+)
+AS
+/*
+
+
+EXEC SPR_RPT_JOURNALS
+	@P_ID_ISSUE = 9999
+
+
+EXEC SPR_RPT_JOURNALS
+	@P_DT_START  =  '01/01/2011 00:00:00',
+	@P_DT_FINISH   =  '31/12/2011 23:59:59',
+	@P_ID_ISSUE  = 9999, 
+	@P_DE_NOTES  = 'realizado'
+	
+*/
+		
+
+
+BEGIN
+
+	SET NOCOUNT ON;
+
+	SET @P_DT_START = CONVERT(VARCHAR(25), CONVERT(DATETIME, @P_DT_START , 103), 121);
+	SET @P_DT_FINISH = CONVERT(VARCHAR(25), CONVERT(DATETIME, @P_DT_FINISH , 103), 121);
+
+	DECLARE @V_FILTER VARCHAR(MAX);
+	SET @V_FILTER  = '';
+
+	-------------- FILTROS --------------
+
+	--DATA
+	IF dbo.FN_IS_VALID_FILTER(@P_DT_START, DEFAULT) = 1 AND dbo.FN_IS_VALID_FILTER(@P_DT_FINISH, DEFAULT) = 1 
+	BEGIN
+		SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_DT_START , ' AND I.CREATED_ON  BETWEEN '''+@P_DT_START +''' AND '''+ @P_DT_FINISH +'''' , DEFAULT);		
+	END
+
+	-- IDS DOS TICKETS
+	IF (dbo.FN_IS_VALID_FILTER(@P_ID_ISSUE, DEFAULT) = 1 AND CHARINDEX(@P_ID_ISSUE,'(') = 0 )
+	BEGIN
+		SET  @P_ID_ISSUE = '(' + @P_ID_ISSUE + ')';
+	END	
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_ID_ISSUE , ' AND I.ID IN ' + @P_ID_ISSUE, DEFAULT);
+
+	--NOTES
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_DE_NOTES , ' AND J."NOTES" LIKE ''%' + @P_DE_NOTES + '%%''' , DEFAULT);
+
+	-------------------------------------------------CONSULTA FINAL--------------------------------------------
+	
+	EXEC(' 
+	SELECT TOP 100
+		I.id,
+		j.id as "journal_id",
+		J.notes,
+		J.created_on,
+		u.firstname as "author"
+	FROM SYN_ISSUES I
+	JOIN SYN_JOURNALS J WITH(NOLOCK) ON I.id = J.journalized_id 
+	JOIN SYN_USERS U WITH(NOLOCK) ON j.user_id = u.id
+	'+@V_FILTER+'
+	')
+	
+END
+

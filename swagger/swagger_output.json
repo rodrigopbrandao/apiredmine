@@ -1,0 +1,171 @@
+{
+  "swagger":"2.0",
+  "info":{
+     "version":"1.0.0",
+     "title":"apiredmine",
+     "description":"A REST API to return data from a local Redmine SQL Server Database."
+  },
+  "host":"localhost:3000",
+  "basePath":"/",
+  "schemes":[
+     "http"
+  ],
+  "paths":{
+     "/api/v1/issue/findByParams":{
+        "post":{
+           "summary":"Returns a list of Issues (Tickets) from Redmine.",
+           "description":"",
+           "consumes":[
+              "application/json"
+           ],
+           "produces":[
+              "application/json"
+           ],
+           "parameters":[            
+              {
+                "name": "authorization",
+                "in": "header",
+                "type": "string"
+              },
+              {
+                 "name":"body",
+                 "in":"body",
+                 "description":"JSON with filter options.",
+                 "required":true,
+                 "schema":{
+                    "type":"object",
+                    "properties":{
+                          "dtStart":{
+                              "type":"string",
+                              "description":"Format: 'dd/MM/yyyy hh:mm:ss'."
+                          },
+                          "dtFinish":{
+                              "type":"string",
+                              "description":"Format: 'dd/MM/yyyy hh:mm:ss'."
+                          },
+                          "nmResquestType":{
+                              "type":"string",
+                              "description":"Request Type, ex: Melhoria, Tarefa, etc. Format: '(1,2,3,4,5,6,7,8,9)'; "
+                          },
+                          "nuDoneRatio":{
+                              "type":"integer",
+                              "description":"Example: 100"
+                          },
+                          "id":{
+                              "type":"integer",
+                              "description":"Issue ID. Must be a valid integer."
+                          },
+                          "nmAssigned":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAuthor":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmStatus":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAssignedBd":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAssignednApp":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAssignednTest":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAssignednAneg":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAssignednAreq":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmAssignednInf":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "deSubject":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "deDescription":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "nmClient":{
+                              "type":"string",
+                              "description":""
+                          }
+                      }
+                  }
+              }          
+          ]
+        }
+     },
+     "/api/v1/journal/findByParams":{
+        "post":{
+           "description":"",
+           "parameters":[
+              {
+                "name":"body",
+                "in":"body",
+                "description":"JSON with filter options.",
+                "required":true,
+                "schema":{
+                   "type":"object",
+                   "properties":{
+                         "dtStart":{
+                             "type":"string",
+                             "description":"Format: 'dd/MM/yyyy hh:mm:ss'."
+                         },
+                         "dtFinish":{
+                             "type":"string",
+                             "description":"Format: 'dd/MM/yyyy hh:mm:ss'."
+                         },
+                         "id":{
+                             "type":"integer",
+                             "description":"Issue ID. Must be a valid integer."
+                         },
+                         "deNotes":{
+                             "type":"string",
+                             "description":"Users commentaries on the issue."
+                         }
+                     }
+                 }
+              }
+           ],
+           "responses":{
+              "401":{
+                 "description":"Unauthorized"
+              }
+           }
+        }
+     },
+     "/api/v1/auth":{
+        "post":{
+           "description":"Authentication endpoint, gets Bearer Token.",
+           "parameters":[
+              {
+                 "name":"username",
+                 "in":"body",
+                 "required":true,
+                 "type":"string"
+              },
+              {
+                "name":"password",
+                "in":"body",
+                "required":true,
+                "type":"string"
+             }              
+           ]
+        }
+     }
+  }
+}

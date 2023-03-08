@@ -1,0 +1,159 @@
+
+alter PROCEDURE SPR_RPT_ISSUE (
+	@P_DT_START_CREATED VARCHAR(25) = NULL,
+	@P_DT_FINISH_CREATED  VARCHAR(25) = NULL,
+	@P_ID_CUSTOM_VALUE_1 VARCHAR(MAX) = NULL, -- TIPO DE SOLICITAÇÃO, EX: MELHORIA, TAREFA, SUPORTE/DÚVIDA , PROBLEMA
+	@P_DONE_RATIO INT = NULL, -- % concluído, pois só faz sentido usar como base tickets concluídos.
+	@P_ID_ISSUE VARCHAR(MAX) = NULL, 
+	@P_NM_ASSIGNED VARCHAR(MAX) = NULL,			-- issue.assigned_to
+	@P_NM_AUTHOR VARCHAR(MAX) = NULL,			-- issue.author_id
+	@P_NM_STATUS VARCHAR(MAX) = NULL,			-- issue.status_id
+	@P_NM_ASSIGNED_BD  VARCHAR(MAX) = NULL,		-- issue.assigned_to_bd_id
+	@P_NM_ASSIGNED_NET	 VARCHAR(MAX) = NULL,	-- issue.assigned_to_net_id				
+	@P_NM_ASSIGNED_TEST	 VARCHAR(MAX) = NULL,	-- issue.assigned_to_test_id
+	@P_NM_ASSIGNED_ANEG	 VARCHAR(MAX) = NULL,	-- issue.assigned_to_aneg_id
+	@P_NM_ASSIGNED_AREQ VARCHAR(MAX) = NULL,	-- issue.assigned_to_areq_id
+	@P_NM_ASSIGNED_INF VARCHAR(MAX) = NULL,		-- issue.assigned_to_inf_id	
+	@P_DE_SUBJECT  VARCHAR(MAX)= NULL, 
+	@P_DE_DESCRIPTION   VARCHAR(MAX)= NULL,
+	@P_NM_CLIENT VARCHAR(MAX) = NULL
+)
+AS
+/*
+
+
+EXEC SPR_RPT_ISSUE
+	@P_ID_ISSUE = 9999
+
+
+EXEC SPR_RPT_ISSUE
+	@P_DT_START_CREATED  =  '01/01/2020 00:00:00',
+	@P_DT_FINISH_CREATED   =  '02/01/2020 23:59:59',
+	@P_ID_CUSTOM_VALUE_1  = '(1,2,3,5,6,7)', 
+	@P_DONE_RATIO INT = '100', 
+	@P_ID_ISSUE  = NULL, 
+	@P_NM_ASSIGNED  = NULL,	
+	@P_NM_AUTHOR  = NULL,			
+	@P_NM_STATUS  = NULL,			
+	@P_NM_ASSIGNED_BD   = NULL,	
+	@P_NM_ASSIGNED_NET	  = NULL, 	
+	@P_NM_ASSIGNED_TEST	  = NULL, 
+	@P_NM_ASSIGNED_ANEG	  = NULL, 
+	@P_NM_ASSIGNED_AREQ  = NULL,  
+	@P_NM_ASSIGNED_INF  = NULL	,
+
+	@P_NM_CLIENT = NULL
+	@P_DE_SUBJECT = NULL, 
+	@P_DE_DESCRIPTION  = NULL,
+	
+*/
+		
+
+
+BEGIN
+
+	SET NOCOUNT ON;
+
+	SET @P_DT_START_CREATED = CONVERT(VARCHAR(25), CONVERT(DATETIME, @P_DT_START_CREATED , 103), 121);
+	SET @P_DT_FINISH_CREATED = CONVERT(VARCHAR(25), CONVERT(DATETIME, @P_DT_FINISH_CREATED , 103), 121);
+
+	DECLARE @V_FILTER VARCHAR(MAX);
+	SET @V_FILTER  = '';
+
+	IF (dbo.FN_IS_VALID_FILTER(@P_ID_ISSUE, DEFAULT) = 1 AND CHARINDEX(@P_ID_ISSUE,'(') = 0 )
+	BEGIN
+		SET  @P_ID_ISSUE = '(' + @P_ID_ISSUE + ')';
+	END
+
+	-------------- FILTROS --------------
+	IF dbo.FN_IS_VALID_FILTER(@P_DT_START_CREATED, DEFAULT) = 1 AND dbo.FN_IS_VALID_FILTER(@P_DT_FINISH_CREATED, DEFAULT) = 1 
+	BEGIN
+		SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_DT_START_CREATED , ' AND I.CREATED_ON  BETWEEN '''+@P_DT_START_CREATED +''' AND '''+ @P_DT_FINISH_CREATED +'''' , DEFAULT);		
+	END
+
+	-- TIPO DE SOLICITAÇÃO (MELHORIA, TAREFA, SUPORTE/DÚVIDA , PROBLEMA
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_ID_CUSTOM_VALUE_1 , ' AND CV1B.ID_CUSTOM_VALUE_1 IN ' + @P_ID_CUSTOM_VALUE_1 , DEFAULT);
+	-- % CONCLUÍDO
+	SET @V_FILTER = DBO.FN_GET_FILTER (@V_FILTER, @P_DONE_RATIO , ' AND DONE_RATIO >= ' + CAST(@P_DONE_RATIO AS VARCHAR), DEFAULT);	
+	-- IDS DOS TICKETS
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_ID_ISSUE , ' AND I.ID IN ' + @P_ID_ISSUE, DEFAULT);
+	
+	-- REPONSÁVEL ATUAL
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED , ' AND U1.firstname LIKE ''%' + @P_NM_ASSIGNED + '%%''', DEFAULT);
+	-- AUTOR
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_AUTHOR , ' AND U2.firstname LIKE ''%' + @P_NM_AUTHOR + '%%''' , DEFAULT);
+	-- SITUAÇÃO
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_STATUS , ' AND U3.name LIKE ''%' + @P_NM_STATUS + '%%''', DEFAULT);
+
+	-- RESPONSÁVEL BD
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED_BD , ' AND U4.firstname LIKE ''%' + @P_NM_ASSIGNED_BD + '%%''' , DEFAULT);
+	-- RESPONSÁVEL .NET
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED_NET , ' AND U5.firstname LIKE ''%' + @P_NM_ASSIGNED_NET + '%%''' , DEFAULT);
+	-- RESPONSÁVEL TESTE
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED_TEST , ' AND U6.firstname LIKE ''%' + @P_NM_ASSIGNED_TEST + '%%''' , DEFAULT);
+	-- RESPONSÁVEL ANEG
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED_ANEG , ' AND U7.firstname LIKE ''%' + @P_NM_ASSIGNED_ANEG + '%%''' , DEFAULT);
+	-- RESPONSÁVEL AREQ
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED_AREQ , ' AND U8.firstname LIKE ''%' + @P_NM_ASSIGNED_AREQ + '%%''' , DEFAULT);
+	-- RESPONSÁVEL INFRA
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_ASSIGNED_INF , ' AND U9.firstname LIKE ''%' + @P_NM_ASSIGNED_INF + '%%''' , DEFAULT);
+
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_NM_CLIENT , ' AND P.NAME LIKE ''%' + @P_NM_CLIENT + '%%''', DEFAULT);
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_DE_SUBJECT , ' AND I."SUBJECT" LIKE ''%' + @P_DE_SUBJECT + '%%''' , DEFAULT);
+	SET @V_FILTER = DBO.FN_GET_FILTER(@V_FILTER, @P_DE_DESCRIPTION , ' AND I."DESCRIPTION" LIKE ''%' + @P_DE_DESCRIPTION + '%%''' , DEFAULT);
+
+
+
+
+	-------------------------------------------------CONSULTA FINAL--------------------------------------------
+	
+	EXEC(' 
+	SELECT  TOP 100
+		I.ID AS "id",										-- Número do Ticket	
+		I.CREATED_ON AS "dtCreated",						-- Data da Criação
+		ISNULL(I."SUBJECT",'''') AS "deSubject",			-- Título
+		ISNULL(I."DESCRIPTION",'''') AS "deDescription",	-- Texto do detalhamento	
+		U3.name AS "nmStatus",  
+		CV1.VALUE AS "nmResquestType",						-- Tipo de Solicitação
+		CV6.VALUE AS "nmSolutionType",						-- Tipo de Solução					
+		P.NAME AS "nmClient",								-- Cliente ("Flex Contact", Atento, Fidelity, etc).	
+		IC.NAME AS "nmCategory",							-- Categoria (CRM, REDMINE, AYTY – Management, OUTROS)	
+		RCV.VALUE AS "vlEstimatedTimeBd",					-- Estimado BD
+		RCV2.VALUE AS "vlEstimatedTimeApp",					-- Estimado App
+		RCV3.VALUE AS "vlEstimatedTimeCoreDev",				-- Estimado CoreDev (antigo Colab)
+		U1.firstname AS "nmAssigned", 						-- Responsável atual
+		U2.firstname AS "nmAuthor",  						-- Autor
+		U4.firstname AS "nmAssignedBd",  					-- Responsável BD
+		U5.firstname AS "nmAssignednApp",  					-- Responsável App
+		U6.firstname AS "nmAssignednTest",  				-- Responsável Test
+		U7.firstname AS "nmAssignednAneg",  				-- Responsável Aneg
+		U8.firstname AS "nmAssignednAreq",  				-- Responsável Areq
+		U9.firstname AS "nmAssignednInf"  					-- Responsável Infra
+	FROM SYN_ISSUES I 
+	LEFT JOIN SYN_CUSTOM_VALUES CV1 WITH(NOLOCK) ON I.ID = CV1.CUSTOMIZED_ID AND CV1.CUSTOM_FIELD_ID = 1  -- customized_id é o Ticket. CUSTOM_FIELD_ID é o tipo de campo custom
+	LEFT JOIN SYN_CUSTOM_VALUES CV6 WITH(NOLOCK) ON I.ID = CV6.CUSTOMIZED_ID AND CV6.CUSTOM_FIELD_ID = 6
+	-- TABELAS CRIADAS POR MIM PARA DEFINIR IDs PARA ESTES VALORES DE TEXTO (EX: "TAREFA"), POIS NA syn_custom_values NÃO TEM IDs DISTINTOS:
+	LEFT JOIN CUSTOM_VALUE_1 CV1B WITH(NOLOCK) ON CV1.VALUE = CV1B.NM_CUSTOM_VALUE_1
+	LEFT JOIN CUSTOM_VALUE_6 CV6B WITH(NOLOCK) ON CV6.VALUE = CV6B.NM_CUSTOM_VALUE_6
+	LEFT JOIN SYN_ISSUE_CATEGORIES IC WITH(NOLOCK) ON I.CATEGORY_ID = IC.ID
+	LEFT JOIN SYN_PROJECTS P WITH(NOLOCK) ON I.PROJECT_ID = P.ID
+	LEFT JOIN SYN_CUSTOM_VALUES RCV WITH(NOLOCK) ON (RCV.CUSTOMIZED_ID = I.ID AND RCV.CUSTOM_FIELD_ID = 29)		  
+	LEFT JOIN SYN_CUSTOM_VALUES RCV2 WITH(NOLOCK) ON (RCV2.CUSTOMIZED_ID = I.ID AND RCV2.CUSTOM_FIELD_ID = 30)	  
+	LEFT JOIN SYN_CUSTOM_VALUES RCV3 WITH(NOLOCK) ON (RCV3.CUSTOMIZED_ID = I.ID AND RCV3.CUSTOM_FIELD_ID = 31)		
+	--
+	LEFT JOIN SYN_USERS U1 WITH(NOLOCK) ON U1.ID = I.assigned_to_id
+	LEFT JOIN SYN_USERS U2 WITH(NOLOCK) ON U2.ID = I.author_id
+	LEFT JOIN SYN_ISSUE_STATUSES U3 WITH(NOLOCK) ON U3.ID = I.status_id
+	LEFT JOIN SYN_USERS U4 WITH(NOLOCK) ON U4.ID = I.assigned_to_bd_id
+	LEFT JOIN SYN_USERS U5 WITH(NOLOCK) ON U5.ID = I.assigned_to_net_id	
+	LEFT JOIN SYN_USERS U6 WITH(NOLOCK) ON U6.ID = I.assigned_to_test_id
+	LEFT JOIN SYN_USERS U7 WITH(NOLOCK) ON U7.ID = I.assigned_to_aneg_id
+	LEFT JOIN SYN_USERS U8 WITH(NOLOCK) ON U8.ID = I.assigned_to_areq_id
+	LEFT JOIN SYN_USERS U9 WITH(NOLOCK) ON U9.ID = I.assigned_to_inf_id
+	'+@V_FILTER+'
+	')
+
+	
+END
+
+
