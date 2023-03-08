@@ -5,6 +5,8 @@ Edit app\config\app.config.js fuke with your credentials, for user Authenticatio
 Requires a running SQL Server with Redmine structure of tables, stored procedures (both stored procedures at docs folder), etc.
 Returns a maximum of 100 records by query.
 
+Acess http://localhost:3000/swagger/v1/ for Swagger.
+
 Requires .env file like below.
 --
 # Set NODE_ENV=production when deploying to production

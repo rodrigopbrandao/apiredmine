@@ -106,13 +106,32 @@
                       }
                   }
               }          
-          ]
+          ],
+          "responses":{
+           "200":{
+              "description":"",
+              "schema":{
+                 "type":"object"
+              }
+           }
+        }
         }
      },
      "/api/v1/journal/findByParams":{
         "post":{
            "description":"",
+           "consumes":[
+              "application/json"
+           ],
+           "produces":[
+              "application/json"
+           ],
            "parameters":[
+              {
+                "name": "authorization",
+                "in": "header",
+                "type": "string"
+              },            
               {
                 "name":"body",
                 "in":"body",
@@ -142,29 +161,54 @@
               }
            ],
            "responses":{
-              "401":{
-                 "description":"Unauthorized"
-              }
-           }
+            "200":{
+               "description":"",
+               "schema":{
+                  "type":"object"
+               }
+            }
+         }
+           
         }
      },
      "/api/v1/auth":{
         "post":{
            "description":"Authentication endpoint, gets Bearer Token.",
-           "parameters":[
+           "consumes":[
+              "application/json"
+           ],
+           "produces":[
+              "application/json"
+           ],
+           "parameters":[            
               {
-                 "name":"username",
+                 "name":"body",
                  "in":"body",
+                 "description":"JSON with filter options.",
                  "required":true,
-                 "type":"string"
-              },
-              {
-                "name":"password",
-                "in":"body",
-                "required":true,
-                "type":"string"
-             }              
-           ]
+                 "schema":{
+                    "type":"object",
+                    "properties":{
+                          "username":{
+                              "type":"string",
+                              "description":""
+                          },
+                          "password":{
+                              "type":"string",
+                              "description":""
+                          }
+                      }
+                  }
+              }          
+          ],
+           "responses":{
+            "200":{
+               "description":"",
+               "schema":{
+                  "type":"object"
+               }
+            }
+         }
         }
      }
   }
