@@ -8,18 +8,14 @@ Returns a maximum of 100 records by query.
 Acess http://localhost:3000/swagger/v1/ for Swagger.
 
 Requires .env file like below.
---
-# Set NODE_ENV=production when deploying to production
-NODE_ENV=development
 
-# SQL Server connection
+NODE_ENV=development
 SQL_USER=sqluser
 SQL_PASSWORD=password
 SQL_DATABASE=database
 SQL_INSTANCE=instance
 SQL_SERVER=server
-# Set SQL_ENCRYPT=true if using Azure
 SQL_ENCRYPT=false
 SQL_TRUSTED_CONNECTION=false
---
+
 
