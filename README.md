@@ -10,12 +10,20 @@ Acess http://localhost:3000/swagger/v1/ for Swagger.
 Requires .env file like below.
 
 NODE_ENV=development
+
 SQL_USER=sqluser
+
 SQL_PASSWORD=password
+
 SQL_DATABASE=database
+
 SQL_INSTANCE=instance
+
 SQL_SERVER=server
+
 SQL_ENCRYPT=false
+
 SQL_TRUSTED_CONNECTION=false
+
 
 
